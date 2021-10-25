@@ -25,6 +25,8 @@
 package io.github.deltacv.mai18n.test
 
 import io.github.deltacv.mai18n.LangManager
+import io.github.deltacv.mai18n.tr
+import io.github.deltacv.mai18n.trLangManager
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forExactly
 import io.kotest.matchers.*
@@ -34,7 +36,7 @@ class LoadTests : StringSpec({
     lateinit var langManager: LangManager
 
     "Load test.csv" {
-        langManager = LangManager("/test.csv", "en")
+        langManager = LangManager("/test.csv", "en").loadIfNeeded()
     }
 
     "Checking Available Langs" {
@@ -71,7 +73,27 @@ class LoadTests : StringSpec({
 })
 
 class TrTests : StringSpec({
+    val langManager = LangManager("/test.csv", "en").loadIfNeeded()
 
+    "Making LangManager a tr" {
+        langManager.makeTr()
+
+        trLangManager shouldBe langManager
+    }
+
+    "Basic tr" {
+        tr("funny copypasta $[test1]")             shouldBe "funny copypasta $test1_en"
+        tr("sunshine $[test2] mm")                      shouldBe "sunshine $test2_en mm"
+        tr("another funny copypasta $[test3]")     shouldBe "another funny copypasta $test3_en"
+        tr("(another funny copypasta)^2 $[test4]") shouldBe "(another funny copypasta)^2 $test4_en"
+        tr("(another funny copypasta)^3 $[test5]") shouldBe "(another funny copypasta)^3 $test5_en"
+    }
+
+    "Formatting tr" {
+        tr("test_formatting1", "gf leek", 2607) shouldBe "I would like a gf leek for $2607 please"
+        tr("test_formatting2", "duckus", 2607)  shouldBe "I have duckus ducks"
+        tr("test_formatting3", 1387.492)        shouldBe "We have 1387.492 more days to go"
+    }
 })
 
 val test1_en = "It sure would be nice if Gluten Free truly designed, built and programmed their own robots instead of having their coach do it for them."

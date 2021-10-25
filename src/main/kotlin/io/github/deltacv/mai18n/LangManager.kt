@@ -2,18 +2,15 @@ package io.github.deltacv.mai18n
 
 import com.opencsv.CSVReader
 import java.io.BufferedReader
+import java.io.FileInputStream
 import java.io.FileReader
 import java.io.InputStreamReader
 import java.util.*
 
-class LangManager(langFile: String, lang: String) {
+class LangManager(langFile: String, lang: String, val encoding: Encoding = Encoding.UTF_8) {
 
-    companion object {
-        private val variableRegex = Regex("\\$\\[(.*?)]")
-    }
-
-    init {
-        loadIfNeeded()
+    internal companion object {
+        val variableRegex = Regex("\\$\\[(.*?)]")
     }
 
     /**
@@ -43,8 +40,16 @@ class LangManager(langFile: String, lang: String) {
      */
     var lang = lang
         set(value) {
+            loadIfNeeded()
+
+            if(!availableLangs.contains(lang)) {
+                throw IllegalArgumentException("The language \"$lang\" is not present in the $langFile file")
+            }
+
             field = value
-            load()
+
+            langIndex = availableLangs.indexOf(lang) + 1
+            trCache.clear()
         }
 
     /**
@@ -108,9 +113,9 @@ class LangManager(langFile: String, lang: String) {
      *
      * @param text the string to translate following the rules explained before
      */
-    fun tr(text: String): String {
+    fun tr(text: String, vararg parameters: Any): String {
         if(trCache.containsKey(text)){
-            return trCache[text]!!
+            return stringVar(trCache[text]!!, *parameters)
         }
 
         val matches = variableRegex.findAll(text)
@@ -133,55 +138,51 @@ class LangManager(langFile: String, lang: String) {
 
         trCache[text] = finalTxt
 
-        return finalTxt
+        return stringVar(finalTxt, *parameters)
     }
 
     /**
      * Loads the csv file if it hasn't been loaded yet
      * @throws
      */
-    fun loadIfNeeded() {
+    fun loadIfNeeded(): LangManager {
         if(!::csv.isInitialized) {
             load()
         }
+
+        return this
     }
 
     private fun load() {
-        val reader = try {
-            BufferedReader(InputStreamReader(javaClass.getResourceAsStream(langFile)))
-        } catch(ignored: Exception) {
-            FileReader(langFile)
+        val resource = try {
+            javaClass.getResourceAsStream(langFile)
+        } catch (ignored: Exception) { null }
+
+        val reader = if(resource != null) {
+            InputStreamReader(resource, encoding.string)
+        } else {
+            InputStreamReader(FileInputStream(langFile), encoding.string)
         }
 
-        csv = CSVReader(reader).readAll()
+        csv = CSVReader(reader)
+            .readAll()
 
         if(csv.isEmpty()) {
             throw IllegalArgumentException("The $langFile file is empty")
         }
 
-        var foundLang = false
         val langs = mutableListOf<String>()
 
         for((i, lang) in csv[0].withIndex()) {
             // skipping the first column of the first row, the first column is exclusive to keys
             if(i != 0) {
-                println("add $lang")
                 langs.add(lang)
             }
-
-            if(lang == this.lang) {
-                langIndex = i
-                foundLang = true
-            }
         }
 
-        if(foundLang) {
-            availableLangs = langs // storing available langs into an inmutable list variable
-        } else {
-            throw IllegalArgumentException("The language \"$lang\" does not exist in the $langFile file")
-        }
+        availableLangs = langs // storing available langs into an inmutable list variable
 
-        trCache.clear()
+        lang = lang // triggering setter
     }
 
     /**

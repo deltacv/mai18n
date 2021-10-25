@@ -13,10 +13,10 @@ var trLangManager: LangManager? = null
  * @see LangManager.makeTr
  * @see LangManager.tr
  */
-fun tr(text: String): String {
+fun tr(text: String, vararg parameters: Any): String {
     if(trLangManager == null) {
         throw IllegalStateException("There's not a LangManager defined as a tr, create a LangManager and makeTr() it")
     }
 
-    return trLangManager!!.tr(text)
+    return trLangManager!!.tr(text, *parameters)
 }
