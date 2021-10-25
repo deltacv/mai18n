@@ -83,7 +83,7 @@ class TrTests : StringSpec({
 
     "Basic tr" {
         tr("funny copypasta $[test1]")             shouldBe "funny copypasta $test1_en"
-        tr("sunshine $[test2] mm")                      shouldBe "sunshine $test2_en mm"
+        tr("sunshine $[test2] mm")                 shouldBe "sunshine $test2_en mm"
         tr("another funny copypasta $[test3]")     shouldBe "another funny copypasta $test3_en"
         tr("(another funny copypasta)^2 $[test4]") shouldBe "(another funny copypasta)^2 $test4_en"
         tr("(another funny copypasta)^3 $[test5]") shouldBe "(another funny copypasta)^3 $test5_en"
