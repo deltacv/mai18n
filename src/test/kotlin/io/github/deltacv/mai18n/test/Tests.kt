@@ -96,6 +96,7 @@ class TrTests : StringSpec({
     }
 })
 
+
 val test1_en = "It sure would be nice if Gluten Free truly designed, built and programmed their own robots instead of having their coach do it for them."
 val test1_es = "Definitivamente seria bueno si Gluten Free realmente hubiera diseñado, construido y programado sus robots en lugar de que su coach lo hiciera por ellos."
 

@@ -69,23 +69,19 @@ class LangManager(langFile: String, lang: String, val encoding: Encoding = Encod
     var langIndex = -1
         private set
 
-    private lateinit var csv: List<Array<String>>
+    lateinit var strings: Map<String, Map<String, String>>
+        private set
 
     private val trCache = WeakHashMap<String, String>()
 
     /**
-     *
+     * Gets the given key for the current "lang".
+     * @returns the value of the key or null if the key doesn't exist
      */
     fun get(key: String): String? {
         loadIfNeeded()
 
-        for(line in csv) {
-            if(line[0] == key) {
-                return line[langIndex]
-            }
-        }
-
-        return null
+        return strings[lang]!![key]
     }
 
     /**
@@ -146,7 +142,7 @@ class LangManager(langFile: String, lang: String, val encoding: Encoding = Encod
      * @throws
      */
     fun loadIfNeeded(): LangManager {
-        if(!::csv.isInitialized) {
+        if(!::strings.isInitialized) {
             load()
         }
 
@@ -164,23 +160,48 @@ class LangManager(langFile: String, lang: String, val encoding: Encoding = Encod
             InputStreamReader(FileInputStream(langFile), encoding.string)
         }
 
-        csv = CSVReader(reader)
+        val csv = CSVReader(reader)
             .readAll()
 
         if(csv.isEmpty()) {
             throw IllegalArgumentException("The $langFile file is empty")
         }
 
+        val strs = mutableMapOf<String, MutableMap<String, String>>()
         val langs = mutableListOf<String>()
 
-        for((i, lang) in csv[0].withIndex()) {
-            // skipping the first column of the first row, the first column is exclusive to keys
-            if(i != 0) {
-                langs.add(lang)
+        for((i, values) in csv.withIndex()) {
+            if(i == 0) {
+                for((langI, lang) in values.withIndex()) {
+                    // skipping the first column of the first row, the first column is exclusive to keys
+                    if(langI != 0) {
+                        langs.add(lang)
+                    }
+                }
+
+                continue
+            }
+
+            var currentKey = ""
+
+            for((langI, value) in values.withIndex()) {
+                if(langI == 0) {
+                    currentKey = value // the first column (index 0) must be the key for these values
+                } else {
+                    // gets the language name of the column current index (-1 because of the first index being the key column)
+                    val langName = langs[langI - 1]
+
+                    if(!strs.containsKey(langName)) {
+                        strs[langName] = mutableMapOf()
+                    }
+
+                    strs[langName]!![currentKey] = value
+                }
             }
         }
 
         availableLangs = langs // storing available langs into an inmutable list variable
+        strings = strs
 
         lang = lang // triggering setter
     }
