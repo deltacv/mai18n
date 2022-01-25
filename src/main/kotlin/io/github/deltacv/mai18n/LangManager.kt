@@ -5,6 +5,7 @@ import java.io.BufferedReader
 import java.io.FileInputStream
 import java.io.FileReader
 import java.io.InputStreamReader
+import java.lang.ref.WeakReference
 import java.util.*
 
 class LangManager(langFile: String, lang: String, val encoding: Encoding = Encoding.UTF_8) {
@@ -72,7 +73,7 @@ class LangManager(langFile: String, lang: String, val encoding: Encoding = Encod
     lateinit var strings: Map<String, Map<String, String>>
         private set
 
-    private val trCache = WeakHashMap<String, String>()
+    private val trCache = WeakHashMap<String, WeakReference<String>>()
 
     /**
      * Gets the given key for the current "lang".
@@ -110,8 +111,10 @@ class LangManager(langFile: String, lang: String, val encoding: Encoding = Encod
      * @param text the string to translate following the rules explained before
      */
     fun tr(text: String, vararg parameters: Any): String {
-        if(trCache.containsKey(text)){
-            return stringVar(trCache[text]!!, *parameters)
+        val cachedText = trCache[text]?.get()
+
+        if(cachedText != null){
+            return stringVar(cachedText, *parameters)
         }
 
         val matches = variableRegex.findAll(text)
@@ -132,7 +135,7 @@ class LangManager(langFile: String, lang: String, val encoding: Encoding = Encod
             }
         }
 
-        trCache[text] = finalTxt
+        trCache[text] = WeakReference(cachedText)
 
         return stringVar(finalTxt, *parameters)
     }
