@@ -1,14 +1,12 @@
 package io.github.deltacv.mai18n
 
 import com.opencsv.CSVReader
-import java.io.BufferedReader
 import java.io.FileInputStream
-import java.io.FileReader
 import java.io.InputStreamReader
 import java.lang.ref.WeakReference
 import java.util.*
 
-class LangManager(langFile: String, lang: String, val encoding: Encoding = Encoding.UTF_8) {
+class Language(langFile: String, lang: String, val encoding: Encoding = Encoding.UTF_8) {
 
     internal companion object {
         val variableRegex = Regex("\\$\\[(.*?)]")
@@ -144,7 +142,7 @@ class LangManager(langFile: String, lang: String, val encoding: Encoding = Encod
      * Loads the csv file if it hasn't been loaded yet
      * @throws
      */
-    fun loadIfNeeded(): LangManager {
+    fun loadIfNeeded(): Language {
         if(!::strings.isInitialized) {
             load()
         }
@@ -212,10 +210,10 @@ class LangManager(langFile: String, lang: String, val encoding: Encoding = Encod
     /**
      * Sets this LangManager as the "trLangManager"
      * @see tr
-     * @see trLangManager
+     * @see trLanguage
      */
-    fun makeTr(): LangManager {
-        trLangManager = this
+    fun makeTr(): Language {
+        trLanguage = this
         return this
     }
 

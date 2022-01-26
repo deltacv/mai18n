@@ -24,61 +24,60 @@
 
 package io.github.deltacv.mai18n.test
 
-import io.github.deltacv.mai18n.LangManager
+import io.github.deltacv.mai18n.Language
 import io.github.deltacv.mai18n.tr
-import io.github.deltacv.mai18n.trLangManager
+import io.github.deltacv.mai18n.trLanguage
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forExactly
 import io.kotest.matchers.*
-import io.kotest.matchers.string.shouldMatch
 
 class LoadTests : StringSpec({
-    lateinit var langManager: LangManager
+    lateinit var language: Language
 
     "Load test.csv" {
-        langManager = LangManager("/test.csv", "en").loadIfNeeded()
+        language = Language("/test.csv", "en").loadIfNeeded()
     }
 
     "Checking Available Langs" {
-        langManager.availableLangs.size shouldBe 2
+        language.availableLangs.size shouldBe 2
 
-        langManager.availableLangs.forExactly(1) {
+        language.availableLangs.forExactly(1) {
             it shouldBe "en"
         }
 
-        langManager.availableLangs.forExactly(1) {
+        language.availableLangs.forExactly(1) {
             it shouldBe "es"
         }
     }
 
     "Checking \"en\" Strings" {
-        langManager.lang = "en"
+        language.lang = "en"
 
-        langManager.get("test1") shouldBe test1_en
-        langManager.get("test2") shouldBe test2_en
-        langManager.get("test3") shouldBe test3_en
-        langManager.get("test4") shouldBe test4_en
-        langManager.get("test5") shouldBe test5_en
+        language.get("test1") shouldBe test1_en
+        language.get("test2") shouldBe test2_en
+        language.get("test3") shouldBe test3_en
+        language.get("test4") shouldBe test4_en
+        language.get("test5") shouldBe test5_en
     }
 
     "Checking \"es\" Strings" {
-        langManager.lang = "es"
+        language.lang = "es"
 
-        langManager.get("test1") shouldBe test1_es
-        langManager.get("test2") shouldBe test2_es
-        langManager.get("test3") shouldBe test3_es
-        langManager.get("test4") shouldBe test4_es
-        langManager.get("test5") shouldBe test5_es
+        language.get("test1") shouldBe test1_es
+        language.get("test2") shouldBe test2_es
+        language.get("test3") shouldBe test3_es
+        language.get("test4") shouldBe test4_es
+        language.get("test5") shouldBe test5_es
     }
 })
 
 class TrTests : StringSpec({
-    val langManager = LangManager("/test.csv", "en").loadIfNeeded()
+    val langManager = Language("/test.csv", "en").loadIfNeeded()
 
     "Making LangManager a tr" {
         langManager.makeTr()
 
-        trLangManager shouldBe langManager
+        trLanguage shouldBe langManager
     }
 
     "Basic tr" {

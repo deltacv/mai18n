@@ -1,7 +1,7 @@
 package io.github.deltacv.mai18n
 
 fun stringVar(text: String, vararg vars: Any): String {
-    val matches = LangManager.variableRegex.findAll(text)
+    val matches = Language.variableRegex.findAll(text)
 
     var finalTxt = text
 

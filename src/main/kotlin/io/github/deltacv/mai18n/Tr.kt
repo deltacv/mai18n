@@ -2,21 +2,21 @@
 
 package io.github.deltacv.mai18n
 
-var trLangManager: LangManager? = null
+var trLanguage: Language? = null
 
 /**
- * Calls tr() on the defined "trLangManager" and retursn the result, for static convenience.
- * Call LangManager.makeTr() to define a LangManager as a "trLangManager",
+ * Calls tr() on the defined "trLanguage" and retursn the result, for static convenience.
+ * Call Language.makeTr() to define a Language as a "trLanguage",
  * or manually set it in this class.
  *
  * @throws IllegalStateException if there's not a LangManager defined as a tr
- * @see LangManager.makeTr
- * @see LangManager.tr
+ * @see Language.makeTr
+ * @see Language.tr
  */
 fun tr(text: String, vararg parameters: Any): String {
-    if(trLangManager == null) {
+    if(trLanguage == null) {
         throw IllegalStateException("There's not a LangManager defined as a tr, create a LangManager and makeTr() it")
     }
 
-    return trLangManager!!.tr(text, *parameters)
+    return trLanguage!!.tr(text, *parameters)
 }
