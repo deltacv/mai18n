@@ -213,7 +213,7 @@ class Language(langFile: String, lang: String, val encoding: Encoding = Encoding
      * @see trLanguage
      */
     fun makeTr(): Language {
-        trLanguage = this
+        makeTr(this)
         return this
     }
 

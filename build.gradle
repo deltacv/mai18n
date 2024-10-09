@@ -1,15 +1,15 @@
 plugins {
-    id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.5.31'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.0'
     id 'maven-publish'
 }
 
 group 'com.github.deltacv'
-version '1.0.0'
+version '1.1.0'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
 }
 
 task sourcesJar(type: Jar) {

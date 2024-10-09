@@ -81,6 +81,9 @@ class TrTests : StringSpec({
     }
 
     "Basic tr" {
+        langManager.makeTr()
+        trLanguage shouldBe langManager
+
         tr("funny copypasta $[test1]")             shouldBe "funny copypasta $test1_en"
         tr("sunshine $[test2] mm")                 shouldBe "sunshine $test2_en mm"
         tr("another funny copypasta $[test3]")     shouldBe "another funny copypasta $test3_en"
@@ -89,6 +92,9 @@ class TrTests : StringSpec({
     }
 
     "Formatting tr" {
+        langManager.makeTr()
+        trLanguage shouldBe langManager
+
         tr("test_formatting1", "gf leek", 2607) shouldBe "I would like a gf leek for $2607 please"
         tr("test_formatting2", "duckus", 2607)  shouldBe "I have duckus ducks"
         tr("test_formatting3", 1387.492)        shouldBe "We have 1387.492 more days to go"

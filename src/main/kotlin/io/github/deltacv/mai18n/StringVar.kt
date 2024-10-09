@@ -9,7 +9,7 @@ fun stringVar(text: String, vararg vars: Any): String {
         val numberStr = match.groupValues[1]
         val number = try {
             numberStr.toInt()
-        } catch(ignored: NumberFormatException) {
+        } catch(_: NumberFormatException) {
             continue
         }
 
