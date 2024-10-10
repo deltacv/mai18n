@@ -79,7 +79,7 @@ class Language(langFile: String, lang: String, val encoding: Encoding = Encoding
      */
     fun get(key: String): String? {
         loadIfNeeded()
-        return strings[lang]!![key]!!.replace("<br>", "\n")
+        return strings[lang]!![key]?.replace("<br>", "\n")
     }
 
     /**
