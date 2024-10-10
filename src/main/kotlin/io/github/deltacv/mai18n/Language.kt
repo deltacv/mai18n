@@ -79,8 +79,7 @@ class Language(langFile: String, lang: String, val encoding: Encoding = Encoding
      */
     fun get(key: String): String? {
         loadIfNeeded()
-
-        return strings[lang]!![key]
+        return strings[lang]!![key]!!.replace("<br>", "\n")
     }
 
     /**
@@ -153,7 +152,7 @@ class Language(langFile: String, lang: String, val encoding: Encoding = Encoding
     private fun load() {
         val resource = try {
             javaClass.getResourceAsStream(langFile)
-        } catch (ignored: Exception) { null }
+        } catch (_: Exception) { null }
 
         val reader = if(resource != null) {
             InputStreamReader(resource, encoding.string)
