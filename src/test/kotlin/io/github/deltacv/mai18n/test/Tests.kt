@@ -25,6 +25,8 @@
 package io.github.deltacv.mai18n.test
 
 import io.github.deltacv.mai18n.Language
+import io.github.deltacv.mai18n.invalidateStringVarCache
+import io.github.deltacv.mai18n.stringVarCache
 import io.github.deltacv.mai18n.tr
 import io.github.deltacv.mai18n.trLanguage
 import io.kotest.core.spec.style.StringSpec
@@ -98,6 +100,22 @@ class TrTests : StringSpec({
         tr("test_formatting1", "gf leek", 2607) shouldBe "I would like a gf leek for $2607 please"
         tr("test_formatting2", "duckus", 2607)  shouldBe "I have duckus ducks"
         tr("test_formatting3", 1387.492)        shouldBe "We have 1387.492 more days to go"
+    }
+
+
+    "Caching check" {
+        langManager.makeTr()
+
+        invalidateStringVarCache()
+        langManager.invalidateCache()
+
+        repeat(100) {
+            tr("test_formatting1", "mai", 2807)
+            tr("test_formatting1", "mai", Math.random())
+        }
+
+        stringVarCache.size shouldBe 101 // 1 for the consistent call + 100 random numbers
+        langManager.getCache().size shouldBe 1 // 1 for "test_formatting1"
     }
 })
 

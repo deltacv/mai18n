@@ -71,7 +71,7 @@ class Language(langFile: String, lang: String, val encoding: Encoding = Encoding
     lateinit var strings: Map<String, Map<String, String>>
         private set
 
-    private val trCache = WeakHashMap<String, WeakReference<String>>()
+    private val trCache = HashMap<String, String>()
 
     /**
      * Gets the given key for the current "lang".
@@ -108,9 +108,9 @@ class Language(langFile: String, lang: String, val encoding: Encoding = Encoding
      * @param text the string to translate following the rules explained before
      */
     fun tr(text: String, vararg parameters: Any): String {
-        val cachedText = trCache[text]?.get()
+        val cachedText = trCache[text]
 
-        if(cachedText != null){
+        if(cachedText != null) {
             return stringVar(cachedText, *parameters)
         }
 
@@ -132,7 +132,7 @@ class Language(langFile: String, lang: String, val encoding: Encoding = Encoding
             }
         }
 
-        trCache[text] = WeakReference(cachedText)
+        trCache[text] = finalTxt
 
         return stringVar(finalTxt, *parameters)
     }
@@ -214,6 +214,23 @@ class Language(langFile: String, lang: String, val encoding: Encoding = Encoding
     fun makeTr(): Language {
         makeTr(this)
         return this
+    }
+
+    /**
+     * Returns the cache of the translated strings
+     * @see tr
+     */
+    fun getCache(): Map<String, String> {
+        return trCache
+    }
+
+    /**
+     * Invalidates the cache of the translated strings
+     * Forces the tr() method to reprocess the strings
+     * @see tr
+     */
+    fun invalidateCache() {
+        trCache.clear()
     }
 
 }
