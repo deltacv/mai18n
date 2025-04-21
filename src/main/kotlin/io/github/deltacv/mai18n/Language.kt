@@ -6,6 +6,18 @@ import java.io.InputStreamReader
 import java.lang.ref.WeakReference
 import java.util.*
 
+/**
+ * Language class for managing the language of the application. Loads from a csv file
+ * and allows to get the language strings by key.
+ *
+ * The csv file must have the following format:
+ * FIRST ROW - The first row must contain the languages available in the csv file.
+ * The first column of each row is reserved for the keys.
+ *
+ * @param langFile The csv file path. It can be a resource path or a file in the disk.
+ * @param lang The language to use. It must be one of the languages available in the csv file specified in the first row.
+ * @param encoding The encoding of the csv file. Default is UTF-8.
+ */
 class Language(langFile: String, lang: String, val encoding: Encoding = Encoding.UTF_8) {
 
     internal companion object {
@@ -189,13 +201,17 @@ class Language(langFile: String, lang: String, val encoding: Encoding = Encoding
                     currentKey = value // the first column (index 0) must be the key for these values
                 } else {
                     // gets the language name of the column current index (-1 because of the first index being the key column)
-                    val langName = langs[langI - 1]
+                    try {
+                        val langName = langs[langI - 1]
 
-                    if(!strs.containsKey(langName)) {
-                        strs[langName] = mutableMapOf()
+                        if (!strs.containsKey(langName)) {
+                            strs[langName] = mutableMapOf()
+                        }
+
+                        strs[langName]!![currentKey] = value
+                    } catch(e: IndexOutOfBoundsException) {
+                        throw IllegalArgumentException("The $langFile file is malformed. The row $i has more columns than expected. Key: ${currentKey}")
                     }
-
-                    strs[langName]!![currentKey] = value
                 }
             }
         }
