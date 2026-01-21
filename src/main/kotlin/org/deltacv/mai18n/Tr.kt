@@ -2,32 +2,84 @@
 
 package org.deltacv.mai18n
 
-private var threadTrLanguage = ThreadLocal<Language>()
-
-@get:Synchronized
-val globalTrLanguage: Language?
-    get() = threadTrLanguage.get()
+/**
+ * Thread-local (contextual) translation language.
+ *
+ * If set, this takes priority over the global translation language.
+ */
+private val threadTrLanguage = ThreadLocal<Language>()
 
 /**
- * Calls tr() on the current Thread's globalTrLanguage and returs the result, for static convenience.
- * Call Language.makeGlobalTr() to define a global Language for the current thread.
+ * JVM-global translation language.
  *
- * @throws IllegalStateException if there's not a LangManager defined as a tr for this thread
- * @see Language.tr
+ * Used as a fallback when no thread-local language is defined.
  */
-fun tr(text: String, vararg parameters: Any): String {
-    if(globalTrLanguage == null) {
-        throw IllegalStateException("There's not a LangManager defined as a tr for ${Thread.currentThread().name}, create a LangManager and makeTr() it")
-    }
+@Volatile
+private var globalTrLanguage: Language? = null
 
-    return globalTrLanguage!!.tr(text, *parameters)
+/**
+ * Returns the effective translation language for the current context.
+ *
+ * Resolution order:
+ * 1. Thread-local language
+ * 2. Global language
+ *
+ * @throws IllegalStateException if no language is defined
+ */
+private fun resolveTrLanguage(): Language {
+    return threadTrLanguage.get()
+        ?: globalTrLanguage
+        ?: throw IllegalStateException(
+            "No translation language is defined. " +
+                    "Call Language.makeThreadTr() or Language.makeGlobalTr()."
+        )
 }
 
 /**
- * Sets the current thread's trLanguage to the given Language.
- * This is used to define a Language as a "trLanguage" for tr().
+ * Calls tr() on the resolved translation language.
+ *
+ * Prefers the current thread's language if present,
+ * otherwise falls back to the global language.
+ *
+ * @see Language.tr
  */
-@Suppress("UNUSED")
-fun Language.makeGlobalTr() {
+fun tr(text: String, vararg parameters: Any): String {
+    return resolveTrLanguage().tr(text, *parameters)
+}
+
+/**
+ * Sets this Language as the translation language for the current thread.
+ *
+ * This overrides the global language for the calling thread only.
+ */
+fun Language.makeThreadTr() {
     threadTrLanguage.set(this)
+}
+
+/**
+ * Clears the JVM-global translation language.
+ *
+ * After calling this, tr() will throw an exception
+ * if no thread-local language is defined.
+ */
+fun clearGlobalTr() {
+    globalTrLanguage = null
+}
+
+/**
+ * Clears the thread-local translation language for the current thread.
+ *
+ * After calling this, tr() will fall back to the global language.
+ */
+fun clearThreadTr() {
+    threadTrLanguage.remove()
+}
+
+/**
+ * Sets this Language as the JVM-global translation language.
+ *
+ * Used when no thread-local language is defined.
+ */
+fun Language.makeGlobalTr() {
+    globalTrLanguage = this
 }

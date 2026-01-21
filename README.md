@@ -138,6 +138,57 @@ $[0] scored $[1] points
 
 ---
 
+## Global and thread-local `tr()`
+
+In addition to calling `tr()` directly on a `Language`, `mai18n` provides a
+top-level `tr()` function for convenience.
+
+This function resolves the active language using the following order:
+
+1. **Thread-local `tr` language**
+2. **Global `tr` language**
+3. **Failure** (throws an exception)
+
+### Global `tr` language
+
+Set a `Language` as the global `tr` language for the current thread:
+
+```kotlin
+lang.makeGlobalTr()
+```
+
+Once set, you can call `tr()` without referencing the `Language` instance:
+
+```kotlin
+tr("hello")
+```
+
+---
+
+### Thread-local `tr` language
+
+A thread-local `tr` language overrides the global one for the current thread only:
+
+```kotlin
+lang.makeThreadTr()
+```
+
+This is useful in multi-threaded environments where each thread may require
+a different active language.
+
+If a thread-local `tr` language is cleared, resolution falls back to the global one.
+
+---
+
+### Failure behavior
+
+If neither a thread-local nor a global `tr` language is defined, calling `tr()` will
+throw an `IllegalStateException`.
+
+This is intentional to avoid silently using an unintended language.
+
+---
+
 ## Caching behavior
 
 * Translated strings are cached internally for performance

@@ -24,6 +24,7 @@
 
 package org.deltacv.mai18n.test
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import org.deltacv.mai18n.*
@@ -36,9 +37,10 @@ class LoadTests : StringSpec({
         languageEn = Language("/test.csv", "en", loadLazily = false)
         languageEn.strings.size shouldBe 8
     }
+
     "Load es test.csv" {
         languageEs = Language("/test.csv", "es", loadLazily = false)
-        languageEn.strings.size shouldBe 8
+        languageEs.strings.size shouldBe 8
     }
 
     "Checking \"en\" Strings" {
@@ -59,35 +61,60 @@ class LoadTests : StringSpec({
 })
 
 class TrTests : StringSpec({
+
     val languageEn = Language("/test.csv", "en")
+    val languageEs = Language("/test.csv", "es")
 
-    "Making LangManager a global tr" {
-        languageEn.makeGlobalTr()
-        globalTrLanguage shouldBe languageEn
+    beforeEach {
+        clearThreadTr()
+        clearGlobalTr()
     }
 
-    "Basic tr" {
+    "Using global tr only" {
         languageEn.makeGlobalTr()
-        globalTrLanguage shouldBe languageEn
 
-        tr("funny copypasta $[test1]")             shouldBe "funny copypasta $test1_en"
-        tr("sunshine $[test2] mm")                 shouldBe "sunshine $test2_en mm"
-        tr("another funny copypasta $[test3]")     shouldBe "another funny copypasta $test3_en"
-        tr("(another funny copypasta)^2 $[test4]") shouldBe "(another funny copypasta)^2 $test4_en"
-        tr("(another funny copypasta)^3 $[test5]") shouldBe "(another funny copypasta)^3 $test5_en"
+        tr("funny copypasta $[test1]") shouldBe
+                "funny copypasta $test1_en"
     }
 
-    "Formatting tr" {
+    "Thread tr overrides global tr" {
         languageEn.makeGlobalTr()
-        globalTrLanguage shouldBe languageEn
+        languageEs.makeThreadTr()
 
-        tr("test_formatting1", "gf leek", 2607) shouldBe "I would like a gf leek for $2607 please"
-        tr("test_formatting2", "duckus", 2607)  shouldBe "I have duckus ducks"
-        tr("test_formatting3", 1387.492)        shouldBe "We have 1387.492 more days to go"
+        tr("sunshine $[test2] mm") shouldBe
+                "sunshine $test2_es mm"
     }
 
+    "Clearing thread tr falls back to global tr" {
+        languageEn.makeGlobalTr()
+        languageEs.makeThreadTr()
 
-    "Caching check" {
+        clearThreadTr()
+
+        tr("another funny copypasta $[test3]") shouldBe
+                "another funny copypasta $test3_en"
+    }
+
+    "Formatting tr uses resolved language" {
+        languageEn.makeGlobalTr()
+
+        tr("test_formatting1", "gf leek", 2607) shouldBe
+                "I would like a gf leek for $2607 please"
+
+        tr("test_formatting2", "duckus", 2607) shouldBe
+                "I have duckus ducks"
+
+        tr("test_formatting3", 1387.492) shouldBe
+                "We have 1387.492 more days to go"
+    }
+
+    "Fails if no tr language is defined" {
+        shouldThrow<IllegalStateException> {
+            tr("test1")
+        }
+    }
+
+    "Caching works correctly" {
         languageEn.makeGlobalTr()
 
         invalidateStringVarCache()
@@ -98,8 +125,8 @@ class TrTests : StringSpec({
             tr("test_formatting1", "mai", Math.random())
         }
 
-        stringVarCache.size shouldBe 101 // 1 for the consistent call + 100 random numbers
-        languageEn.trCache.size shouldBe 1 // 1 for "test_formatting1"
+        stringVarCache.size shouldBe 101
+        languageEn.trCache.size shouldBe 1
     }
 })
 
