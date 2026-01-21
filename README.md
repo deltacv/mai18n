@@ -1,43 +1,151 @@
-# mai18n - Simple CSV localization for the JVM
+# mai18n
 
-### Gradle
+Simple CSV-based internationalization for the JVM.
+
+`mai18n` loads **one language at a time** from a CSV file and provides a small API for
+key-based translation and indexed string variables.
+
+---
+
+## Gradle
 
 ```groovy
 repositories {
-  maven { url 'https://jitpack.io' }
+    mavenCentral()
 }
 
 dependencies {
-  implementation 'com.github.deltacv:mai18n:1.1.0'
+    implementation 'org.deltacv:mai18n:1.2.0'
 }
 ```
 
+---
+
+## CSV format
+
+The CSV file must follow this structure:
+
+* The **first row** defines the available languages
+* The **first column** of every row is the translation key
+* Each remaining column contains translations for a language
+
+Example:
+
+```csv
+key,en,es
+hello,Hello,Hola
+welcome_user,Welcome $[0],Bienvenido $[0]
+```
+
+---
+
 ## Usage
 
-### Check [test.csv](https://github.com/deltacv/mai18n/blob/master/src/test/resources/test.csv) for an example i18n file
-
-Load the file:
+### Loading a language
 
 ```kotlin
-import io.github.deltacv.mai18n.Language
+import org.deltacv.mai18n.Language
 
-val language = Language("/test.csv", "en").loadIfNeeded()
+val lang = Language("/test.csv", "en")
 ```
 
-Check the languages available for that file & set to another language:
+By default, the file is loaded lazily on first access.
+To load immediately:
 
 ```kotlin
-val languages = lang.availableLangs
-
-language.lang = "es"
+val lang = Language("/test.csv", "en", loadLazily = false)
 ```
 
-Get a value from the current language:
+### Language immutability
 
+`Language` instances are immutable with respect to the selected language.
+
+To switch languages, create a new instance:
+
+```kotlin
+val en = Language("/test.csv", "en")
+val es = Language("/test.csv", "es")
 ```
-val string = language.get("test1")
+
+---
+
+## Getting raw values
+
+Retrieve a translated value by key:
+
+```kotlin
+val text = lang.get("hello")
 ```
 
-### tr() api
+Returns `null` if the key does not exist.
 
-Coming soon.
+---
+
+## `tr()` API
+
+### Key translation
+
+`tr()` resolves translation keys embedded using the `$[]` syntax.
+
+```kotlin
+lang.tr("hello")
+lang.tr("$[hello]")
+```
+
+Both return:
+
+```text
+Hello
+```
+
+If no `$[]` tokens are found, `tr()` attempts to translate the entire string as a key.
+
+If no translation exists, the original string is returned.
+
+---
+
+### Indexed string variables
+
+`tr()` also supports indexed variables using the same `$[]` syntax.
+
+Indexes refer to the arguments passed to `tr()`:
+
+```kotlin
+lang.tr("welcome_user", "Alex")
+```
+
+CSV value:
+
+```text
+Welcome $[0]
+```
+
+Result:
+
+```text
+Welcome Alex
+```
+
+Multiple variables are supported:
+
+```kotlin
+lang.tr("score_msg", "Alex", 42)
+```
+
+```text
+$[0] scored $[1] points
+```
+
+---
+
+## Caching behavior
+
+* Translated strings are cached internally for performance
+* Variable substitution (`$[0]`, `$[1]`, etc.) is applied after translation
+* Cache access is thread-safe
+
+To clear the translation cache:
+
+```kotlin
+lang.invalidateCache()
+```
