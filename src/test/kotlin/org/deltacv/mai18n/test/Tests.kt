@@ -104,8 +104,21 @@ class TrTests : StringSpec({
         tr("test_formatting2", "duckus", 2607) shouldBe
                 "I have duckus ducks"
 
-        tr("test_formatting3", 1387.492) shouldBe
-                "We have 1387.492 more days to go"
+        tr("test_formatting3", 1387.492, "Cami") shouldBe
+                "We have 1387.492 more days to go until Cami"
+    }
+
+    "Incomplete tr formatting leaves placeholders" {
+        languageEn.makeGlobalTr()
+
+        tr("test_formatting1") shouldBe
+                "I would like a $[0] for $$[1] please"
+
+        tr("test_formatting2") shouldBe
+                "I have $[0] ducks"
+
+        tr("test_formatting3", 500.0) shouldBe
+                "We have 500.0 more days to go until $[1]"
     }
 
     "Fails if no tr language is defined" {
@@ -120,13 +133,13 @@ class TrTests : StringSpec({
         invalidateStringVarCache()
         languageEn.invalidateCache()
 
-        repeat(100) {
-            tr("test_formatting1", "mai", 2807)
-            tr("test_formatting1", "mai", Math.random())
+        repeat(100) { i ->
+            tr("test_formatting1", "mai", 2807) // +1 stringVarCache
+            tr("$[test_formatting1] 1", "mai", i + Math.random()) // +100 stringVarCache
         }
 
         stringVarCache.size shouldBe 101
-        languageEn.trCache.size shouldBe 1
+        languageEn.trCache.size shouldBe 2 // two, for "test_formatting1" and "$[test_formatting1] 1"
     }
 })
 
