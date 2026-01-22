@@ -150,17 +150,42 @@ class Language(
             throw IllegalArgumentException("The language \"$lang\" is not present in $file")
         }
 
+        val expectedColumns = header.size
+
         val loaded = HashMap<String, String>()
 
         for ((i, values) in csv.withIndex()) {
-            if (i == 0) continue // skipping header row
+            if (i == 0) continue // header
             if (values.isEmpty()) continue
 
-            val key = values[0]
-
-            if (langIndex < values.size) {
-                loaded[key] = values[langIndex]
+            if (values.size > expectedColumns) {
+                throw IllegalArgumentException(
+                    "The $file file is malformed. " +
+                            "Row $i has more columns than expected. " +
+                            "Expected $expectedColumns, got ${values.size}. " +
+                            "Key: ${values.firstOrNull()}"
+                )
             }
+
+            if (values.size < expectedColumns) {
+                val key = values.firstOrNull()
+
+                // header[0] is "key", languages start at index 1
+                val missingLangNames = header
+                    .drop(values.size)   // columns that don't exist in this row
+                    .joinToString(", ")
+
+                throw IllegalArgumentException(
+                    "The $file file is malformed. " +
+                            "Row $i does not define all columns specified by the header." +
+                            "Expected $expectedColumns, got ${values.size}. " +
+                            "Missing translation for languages: \"$missingLangNames\". " +
+                            "Key: $key"
+                )
+            }
+
+            val key = values[0]
+            loaded[key] = values[langIndex]
         }
 
         // Atomic bulk insert into the concurrent map

@@ -27,6 +27,7 @@ package org.deltacv.mai18n.test
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import org.deltacv.mai18n.*
 
 class LoadTests : StringSpec({
@@ -57,6 +58,26 @@ class LoadTests : StringSpec({
         languageEs.get("test3") shouldBe test3_es
         languageEs.get("test4") shouldBe test4_es
         languageEs.get("test5") shouldBe test5_es
+    }
+
+    "Throws on rows with more columns than header" {
+        val ex = shouldThrow<IllegalArgumentException> {
+            Language("/malformed1_test.csv", "en", loadLazily = false)
+        }
+
+        ex.message shouldContain "malformed"
+        ex.message shouldContain "more columns than expected"
+        ex.message shouldContain "hello"
+    }
+
+    "Throws when language column is missing for a row" {
+        val ex = shouldThrow<IllegalArgumentException> {
+            Language("/malformed2_test.csv", "es", loadLazily = false)
+        }
+
+        ex.message shouldContain "does not define all columns specified by the header."
+        ex.message shouldContain "hello"
+        ex.message shouldContain "Missing translation for languages: \"es\""
     }
 })
 
