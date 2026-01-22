@@ -142,7 +142,7 @@ class TrTests : StringSpec({
                 "We have 500.0 more days to go until $[1]"
     }
 
-    "Fails if no tr language is defined" {
+    "Throws if no tr language is defined" {
         shouldThrow<IllegalStateException> {
             tr("test1")
         }
